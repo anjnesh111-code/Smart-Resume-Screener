@@ -51,3 +51,13 @@ def compute_similarity(vec1: list, vec2: list) -> float:
     b = np.array(vec2)
 
     return float(np.dot(a, b))
+
+
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+def get_embedding(text):
+
+    return model.encode(text).tolist()
+   

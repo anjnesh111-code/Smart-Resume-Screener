@@ -16,4 +16,9 @@ numpy==1.26.4                   # Numerical operations (used by embedding model)
 scikit-learn==1.5.0             # Optional: additional similarity metrics, scaling
 
 # Environment variable management
-python-dotenv==1.0.1            # Loads .env files into os.environ
+python-dotenv==1.0.1 
+
+pdfplumber
+
+
+           # Loads .env files into os.environ
