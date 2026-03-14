@@ -1,0 +1,19 @@
+# Core NLP
+sentence-transformers==3.0.1    # Sentence embeddings (includes PyTorch)
+spacy==3.7.4                    # NLP utilities, NER, lemmatization
+
+# Vector database
+pinecone==3.2.2                 # Pinecone Python client v3
+
+# Web interface
+streamlit==1.35.0               # Turns Python scripts into web apps
+
+# Data handling
+pandas==2.2.2                   # Tabular data manipulation
+numpy==1.26.4                   # Numerical operations (used by embedding model)
+
+# ML utilities
+scikit-learn==1.5.0             # Optional: additional similarity metrics, scaling
+
+# Environment variable management
+python-dotenv==1.0.1            # Loads .env files into os.environ
