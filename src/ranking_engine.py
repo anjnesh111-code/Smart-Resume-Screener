@@ -14,7 +14,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def download_kaggle_dataset() -> str:
-    """Download resume dataset from Kaggle using CLI and return path to CSV."""
+    """Download resume dataset from Kaggle and return path to CSV."""
     import subprocess, sys
 
     # Set credentials from Streamlit secrets
@@ -27,19 +27,21 @@ def download_kaggle_dataset() -> str:
     print("[Kaggle] Downloading resume dataset...")
 
     result = subprocess.run([
-        sys.executable, "-m", "kaggle",
+        "kaggle",
         "datasets", "download",
         "-d", "snehaanbhawal/resume-dataset",
         "-p", download_path,
         "--unzip"
     ], capture_output=True, text=True)
 
+    print("[Kaggle] stdout:", result.stdout)
+    print("[Kaggle] stderr:", result.stderr)
+
     if result.returncode != 0:
         raise RuntimeError(f"Kaggle download failed: {result.stderr}")
 
     print("[Kaggle] Download complete.")
 
-    # Find the CSV
     for name in ["Resume.csv", "resume.csv", "UpdatedResumeDataSet.csv"]:
         path = os.path.join(download_path, name)
         if os.path.exists(path):
