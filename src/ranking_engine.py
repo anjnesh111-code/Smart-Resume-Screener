@@ -119,16 +119,26 @@ def load_resumes_from_disk(data_dir: str = None) -> pd.DataFrame:
 
 
 def index_all_resumes(data_dir: str = None) -> None:
-    # Step 1 — wipe existing vectors first
+    import time
+
     pc = get_pinecone_client()
     create_index_if_not_exists(pc)
     index = get_index(pc)
-    
-    from src.pinecone_index import delete_all_vectors
-    print("[Indexer] Wiping existing vectors...")
-    delete_all_vectors(index)
 
-    # Step 2 — load fresh data
+    # Wipe existing vectors and wait for deletion to complete
+    print("[Indexer] Wiping existing vectors...")
+    index.delete(delete_all=True)
+
+    # Wait until index reports 0 vectors
+    for _ in range(30):
+        stats = get_index_stats(index)
+        count = stats["total_vector_count"]
+        print(f"[Indexer] Waiting for wipe... {count} vectors remaining")
+        if count == 0:
+            break
+        time.sleep(5)
+
+    # Load fresh data from CSV
     df = load_resumes_from_csv()
     if df.empty:
         raise ValueError("No resumes found to index.")
@@ -151,6 +161,7 @@ def index_all_resumes(data_dir: str = None) -> None:
         })
 
     upsert_batch(index, vectors)
+
     stats = get_index_stats(index)
     print(f"[Indexer] Done. Total vectors: {stats['total_vector_count']}")
 
