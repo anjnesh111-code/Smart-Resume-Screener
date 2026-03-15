@@ -7,3 +7,4 @@ torch
 pinecone
 python-dotenv
 pdfplumber
+kaggle
