@@ -119,58 +119,35 @@ def rank_candidates(job_description: str, top_k: int = 10) -> pd.DataFrame:
     if not job_description.strip():
         return pd.DataFrame()
 
-    print("[Ranker] Preprocessing job description...")
-
     processed_jd = preprocess_resume(job_description)["processed"]
-
-    print("[Ranker] Creating embedding...")
 
     jd_embedding = get_embedding(processed_jd)
 
     pc = get_pinecone_client()
-
     index = get_index(pc)
-
-    print(f"[Ranker] Querying Pinecone (top {top_k})...")
 
     matches = query_similar_resumes(index, jd_embedding, top_k=top_k)
 
     if not matches:
-        print("[Ranker] No matches found.")
         return pd.DataFrame()
 
     results = []
 
     for rank, match in enumerate(matches, start=1):
 
-        # SAFE ACCESS (works for dict OR object)
-        match_id = getattr(match, "id", None) or match.get("id")
-        score = getattr(match, "score", None) or match.get("score")
-
-        meta = {}
-
-        if hasattr(match, "metadata") and match.metadata:
-            meta = match.metadata
-        elif isinstance(match, dict):
-            meta = match.get("metadata", {})
-
-        category = meta.get("category", "Unknown")
-        preview = meta.get("text_preview", "")
-        skills = meta.get("skills", "")
+        meta = getattr(match, "metadata", {}) or {}
 
         results.append({
             "rank": rank,
-            "candidate_id": match_id,
-            "score": score,
-            "category": category,
-            "text_preview": preview,
-            "skills": skills,
+            "candidate_id": getattr(match, "id", ""),
+            "score": getattr(match, "score", 0),
+            "category": meta.get("category", "Unknown"),
+            "text_preview": meta.get("text_preview", ""),
+            "skills": meta.get("skills", ""),
         })
 
     df_results = pd.DataFrame(results)
 
     df_results["match_pct"] = (df_results["score"] * 100).round(1).astype(str) + "%"
-
-    print(f"[Ranker] ✅ Found {len(df_results)} candidates.")
 
     return df_results
