@@ -30,14 +30,16 @@ def download_kaggle_dataset() -> str:
     os.makedirs(download_path, exist_ok=True)
 
     print("[Kaggle] Downloading resume dataset...")
-    from kaggle.api.kaggle_api_extended import KaggleApiClient
-    import kaggle as kg
-    kg.api.authenticate()
-    kg.api.dataset_download_files(
+
+    from kaggle.api.kaggle_api_extended import KaggleApiExtended
+    api = KaggleApiExtended()
+    api.authenticate()
+    api.dataset_download_files(
         "snehaanbhawal/resume-dataset",
         path=download_path,
         unzip=True,
     )
+
     print("[Kaggle] Download complete.")
 
     # Find the CSV
@@ -51,7 +53,6 @@ def download_kaggle_dataset() -> str:
         return csvs[0]
 
     raise FileNotFoundError("Kaggle download succeeded but no CSV found.")
-
 
 def load_resumes_from_csv() -> pd.DataFrame:
     """Load resumes from CSV, downloading from Kaggle if needed."""
