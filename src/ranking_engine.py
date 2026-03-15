@@ -42,16 +42,19 @@ def download_kaggle_dataset() -> str:
 
     print("[Kaggle] Download complete.")
 
+    all_files = glob.glob(os.path.join(download_path, "**", "*"), recursive=True)
+    print("[Kaggle] Files found:", all_files)
+
     for name in ["Resume.csv", "resume.csv", "UpdatedResumeDataSet.csv"]:
         path = os.path.join(download_path, name)
         if os.path.exists(path):
             return path
 
-    csvs = glob.glob(os.path.join(download_path, "*.csv"))
+    csvs = glob.glob(os.path.join(download_path, "**", "*.csv"), recursive=True)
     if csvs:
         return csvs[0]
 
-    raise FileNotFoundError("Kaggle download succeeded but no CSV found.")
+    raise FileNotFoundError(f"No CSV found. Files downloaded: {all_files}")
 
 def load_resumes_from_csv() -> pd.DataFrame:
     """Load resumes from CSV, downloading from Kaggle if needed."""
