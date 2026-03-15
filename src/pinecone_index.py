@@ -8,8 +8,8 @@ from typing import Optional
 
 PINECONE_API_KEY  = os.getenv("PINECONE_API_KEY", "pcsk_2HMUbo_GjKx4mB746Jx5MjwxC8bHdfiMf2jNtBpQSuWRd6fwp18155WecnUdqKhKFPnUAC")
 INDEX_NAME        = "resume-index"
-EMBEDDING_DIM     = 384      # Must match the dimension of your embedding model
-METRIC            = "cosine" # How similarity is measured (cosine, euclidean, dotproduct)
+EMBEDDING_DIM     = 384     
+METRIC            = "cosine" 
 
 
 def get_pinecone_client() -> Pinecone:
