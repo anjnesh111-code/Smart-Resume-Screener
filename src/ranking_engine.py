@@ -14,13 +14,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def download_kaggle_dataset() -> str:
-    """Download resume dataset from Kaggle and return path to CSV."""
-    try:
-        import kaggle
-    except ImportError:
-        import subprocess, sys
-        subprocess.run([sys.executable, "-m", "pip", "install", "kaggle"], check=True)
-        import kaggle
+    """Download resume dataset from Kaggle using CLI and return path to CSV."""
+    import subprocess, sys
 
     # Set credentials from Streamlit secrets
     os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
@@ -31,14 +26,16 @@ def download_kaggle_dataset() -> str:
 
     print("[Kaggle] Downloading resume dataset...")
 
-    from kaggle.api.kaggle_api_extended import KaggleApiExtended
-    api = KaggleApiExtended()
-    api.authenticate()
-    api.dataset_download_files(
-        "snehaanbhawal/resume-dataset",
-        path=download_path,
-        unzip=True,
-    )
+    result = subprocess.run([
+        sys.executable, "-m", "kaggle",
+        "datasets", "download",
+        "-d", "snehaanbhawal/resume-dataset",
+        "-p", download_path,
+        "--unzip"
+    ], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        raise RuntimeError(f"Kaggle download failed: {result.stderr}")
 
     print("[Kaggle] Download complete.")
 
