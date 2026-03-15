@@ -1,9 +1,9 @@
-streamlit==1.35.0
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.5.0
-sentence-transformers==3.0.1
-spacy==3.7.4
-pinecone-client==3.2.2
-python-dotenv==1.0.1
+streamlit
+pandas
+numpy
+scikit-learn
+sentence-transformers
+torch
+pinecone-client
+python-dotenv
 pdfplumber
