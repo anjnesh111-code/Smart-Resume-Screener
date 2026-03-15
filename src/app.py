@@ -52,9 +52,11 @@ def extract_text_from_pdf(file) -> str:
 # RESUME UPLOAD PIPELINE
 # -----------------------------
 def upload_resume(file, index) -> str:
+    import hashlib
     text = extract_text_from_pdf(file)
+    # Use content hash as ID so same resume never duplicates
+    resume_id = "uploaded_" + hashlib.md5(text.encode()).hexdigest()
     embedding = get_embedding(text)
-    resume_id = str(uuid.uuid4())
     index.upsert(vectors=[{
         "id":       resume_id,
         "values":   embedding,
