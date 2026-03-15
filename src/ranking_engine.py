@@ -103,16 +103,11 @@ def rank_candidates(job_description: str, top_k: int = 10) -> pd.DataFrame:
 
     results = []
     for rank, match in enumerate(matches, start=1):
-        meta = match.get("metadata", {})
-        results.append({
-            "rank":         rank,
-            "candidate_id": match["id"],
-            "category":     meta.get("category", "Unknown"),
-            "score":        match["score"],
-            "skills":       meta.get("skills", ""),
-            "text_preview": meta.get("text_preview", ""),
-        })
-
+        meta = match.metadata or {}
+        category = meta.get("category", "Unknown")
+        preview = meta.get("text_preview", "")
+        skills = meta.get("skills", "")
+            
     df_results = pd.DataFrame(results)
     df_results["match_pct"] = (df_results["score"] * 100).round(1).astype(str) + "%"
 
