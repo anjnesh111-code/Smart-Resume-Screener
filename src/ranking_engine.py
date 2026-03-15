@@ -119,7 +119,17 @@ def load_resumes_from_disk(data_dir: str = None) -> pd.DataFrame:
 
 
 def index_all_resumes(data_dir: str = None) -> None:
-    df = load_resumes_from_disk(data_dir)
+    # Step 1 — wipe existing vectors first
+    pc = get_pinecone_client()
+    create_index_if_not_exists(pc)
+    index = get_index(pc)
+    
+    from src.pinecone_index import delete_all_vectors
+    print("[Indexer] Wiping existing vectors...")
+    delete_all_vectors(index)
+
+    # Step 2 — load fresh data
+    df = load_resumes_from_csv()
     if df.empty:
         raise ValueError("No resumes found to index.")
 
@@ -140,10 +150,9 @@ def index_all_resumes(data_dir: str = None) -> None:
             },
         })
 
-    pc = get_pinecone_client()
-    create_index_if_not_exists(pc)
-    upsert_batch(get_index(pc), vectors)
-    print("[Indexer] Done.")
+    upsert_batch(index, vectors)
+    stats = get_index_stats(index)
+    print(f"[Indexer] Done. Total vectors: {stats['total_vector_count']}")
 
 
 def rank_candidates(job_description: str, top_k: int = 10) -> pd.DataFrame:
