@@ -169,21 +169,5 @@ def rank_candidates(job_description: str, top_k: int = 10) -> pd.DataFrame:
     df_results = pd.DataFrame(results)
     df_results["match_pct"] = (df_results["score"] * 100).round(1).astype(str) + "%"
     return df_results
-```
 
----
 
-### Step 4 — Add `kaggle` to `requirements.txt`
-
-Edit the root `requirements.txt` and add `kaggle` at the bottom:
-```
-streamlit
-pandas
-numpy
-scikit-learn
-sentence-transformers
-torch
-pinecone
-python-dotenv
-pdfplumber
-kaggle
