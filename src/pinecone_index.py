@@ -60,3 +60,6 @@ def query_similar_resumes(index, query_embedding: list, top_k: int = 5) -> list:
 def get_index_stats(index) -> dict:
     stats = index.describe_index_stats()
     return {"total_vector_count": stats.total_vector_count, "dimension": EMBEDDING_DIM}
+
+def delete_all_vectors(index) -> None:
+    index.delete(delete_all=True)
