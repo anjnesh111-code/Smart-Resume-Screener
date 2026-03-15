@@ -4,6 +4,6 @@ numpy
 scikit-learn
 sentence-transformers
 torch
-pinecone-client
+pinecone
 python-dotenv
 pdfplumber
