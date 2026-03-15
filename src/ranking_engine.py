@@ -1,6 +1,7 @@
 import os
 import glob
 import pandas as pd
+import streamlit as st
 
 from src.preprocessing import preprocess_resume
 from src.embedding_model import get_embedding, get_batch_embeddings
@@ -9,25 +10,63 @@ from src.pinecone_index import (
     get_index, upsert_batch, query_similar_resumes, get_index_stats,
 )
 
-# Always resolve paths relative to repo root, not working directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def load_resumes_from_csv() -> pd.DataFrame:
-    """Load resumes from CSV file in data/ folder."""
-    csv_path = os.path.join(BASE_DIR, "data", "resume_dataset.csv")
+def download_kaggle_dataset() -> str:
+    """Download resume dataset from Kaggle and return path to CSV."""
+    try:
+        import kaggle
+    except ImportError:
+        import subprocess, sys
+        subprocess.run([sys.executable, "-m", "pip", "install", "kaggle"], check=True)
+        import kaggle
 
-    if not os.path.exists(csv_path):
-        for name in ["Resume.csv", "resume.csv", "resumes.csv", "UpdatedResumeDataSet.csv"]:
-            alt = os.path.join(BASE_DIR, "data", name)
-            if os.path.exists(alt):
-                csv_path = alt
-                break
-        else:
-            raise FileNotFoundError(
-                f"No resume CSV found in data/ folder. "
-                f"Files checked in: {os.path.join(BASE_DIR, 'data')}"
-            )
+    # Set credentials from Streamlit secrets
+    os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
+    os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
+
+    download_path = os.path.join(BASE_DIR, "data")
+    os.makedirs(download_path, exist_ok=True)
+
+    print("[Kaggle] Downloading resume dataset...")
+    from kaggle.api.kaggle_api_extended import KaggleApiClient
+    import kaggle as kg
+    kg.api.authenticate()
+    kg.api.dataset_download_files(
+        "snehaanbhawal/resume-dataset",
+        path=download_path,
+        unzip=True,
+    )
+    print("[Kaggle] Download complete.")
+
+    # Find the CSV
+    for name in ["Resume.csv", "resume.csv", "UpdatedResumeDataSet.csv"]:
+        path = os.path.join(download_path, name)
+        if os.path.exists(path):
+            return path
+
+    csvs = glob.glob(os.path.join(download_path, "*.csv"))
+    if csvs:
+        return csvs[0]
+
+    raise FileNotFoundError("Kaggle download succeeded but no CSV found.")
+
+
+def load_resumes_from_csv() -> pd.DataFrame:
+    """Load resumes from CSV, downloading from Kaggle if needed."""
+    csv_path = None
+
+    # Check if already downloaded
+    for name in ["Resume.csv", "resume.csv", "UpdatedResumeDataSet.csv", "resume_dataset.csv"]:
+        path = os.path.join(BASE_DIR, "data", name)
+        if os.path.exists(path):
+            csv_path = path
+            break
+
+    # Download from Kaggle if not found
+    if csv_path is None:
+        csv_path = download_kaggle_dataset()
 
     df = pd.read_csv(csv_path)
     df.columns = [c.strip().lower() for c in df.columns]
@@ -41,7 +80,7 @@ def load_resumes_from_csv() -> pd.DataFrame:
     df = df.rename(columns=col_map)
 
     if "raw_text" not in df.columns:
-        raise ValueError(f"Could not find resume text column. Columns found: {list(df.columns)}")
+        raise ValueError(f"Could not find resume text column. Columns: {list(df.columns)}")
     if "category" not in df.columns:
         df["category"] = "Unknown"
 
@@ -57,9 +96,7 @@ def load_resumes_from_disk(data_dir: str = None) -> pd.DataFrame:
         data_dir = os.path.join(BASE_DIR, "data", "resumes")
 
     txt_files = glob.glob(os.path.join(data_dir, "**", "*.txt"), recursive=True)
-
     if not txt_files:
-        print(f"[Loader] No .txt files in {data_dir}, trying CSV fallback...")
         return load_resumes_from_csv()
 
     records = []
@@ -81,11 +118,10 @@ def load_resumes_from_disk(data_dir: str = None) -> pd.DataFrame:
 def index_all_resumes(data_dir: str = None) -> None:
     df = load_resumes_from_disk(data_dir)
     if df.empty:
-        raise ValueError("No resumes found. Check your data/ folder.")
+        raise ValueError("No resumes found to index.")
 
     df["processed_text"] = df["raw_text"].apply(lambda t: preprocess_resume(t)["processed"])
     df["skills"] = df["raw_text"].apply(lambda t: preprocess_resume(t)["skills"])
-
     embeddings = get_batch_embeddings(df["processed_text"].tolist())
 
     vectors = []
@@ -104,7 +140,7 @@ def index_all_resumes(data_dir: str = None) -> None:
     pc = get_pinecone_client()
     create_index_if_not_exists(pc)
     upsert_batch(get_index(pc), vectors)
-    print(f"[Indexer] Done.")
+    print("[Indexer] Done.")
 
 
 def rank_candidates(job_description: str, top_k: int = 10) -> pd.DataFrame:
@@ -133,3 +169,21 @@ def rank_candidates(job_description: str, top_k: int = 10) -> pd.DataFrame:
     df_results = pd.DataFrame(results)
     df_results["match_pct"] = (df_results["score"] * 100).round(1).astype(str) + "%"
     return df_results
+```
+
+---
+
+### Step 4 — Add `kaggle` to `requirements.txt`
+
+Edit the root `requirements.txt` and add `kaggle` at the bottom:
+```
+streamlit
+pandas
+numpy
+scikit-learn
+sentence-transformers
+torch
+pinecone
+python-dotenv
+pdfplumber
+kaggle
