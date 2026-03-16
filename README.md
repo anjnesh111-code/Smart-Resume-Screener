@@ -86,5 +86,6 @@ streamlit run src/app.py
 - Fine-tuned domain-specific embedding model
 
 ## Authors 
-Anjnesh singh tomar - @anjnesh111-code
-Ashish Jayswal - @ashishjayswal
+Anjnesh Singh Tomar -[@anjnesh111-code](https://github.com/Ashishjayswal)
+Lakshya Namdev-[@lakshya-Namdev-123](https://github.com/)
+Ashish Jayswal - [https://github.com/Ashishjayswal](https://github.com/Ashishjayswal)
