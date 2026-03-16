@@ -84,3 +84,7 @@ streamlit run src/app.py
 - Skill-overlap scoring on top of semantic similarity
 - LLM-generated candidate fit explanation using RAG
 - Fine-tuned domain-specific embedding model
+
+## Authors 
+Anjnesh singh tomar - @anjnesh111-code
+Ashish Jayswal - @ashishjayswal
